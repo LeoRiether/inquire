@@ -72,6 +72,13 @@ pub struct CustomType<'a, T> {
     /// Message to be presented to the user.
     pub message: &'a str,
 
+    /// Initial value of the prompt's text input.
+    ///
+    /// If you want to set a default value for the prompt, returned when the user's submission is empty, see [`default`].
+    ///
+    /// [`default`]: Self::default
+    pub initial_value: Option<&'a str>,
+
     /// Default value, returned when the user input is empty.
     pub default: Option<T>,
 
@@ -126,6 +133,7 @@ where
     {
         Self {
             message,
+            initial_value: None,
             default: None,
             placeholder: None,
             help_message: None,
@@ -136,6 +144,16 @@ where
             error_message: "Invalid input".into(),
             render_config: get_configuration(),
         }
+    }
+
+    /// Sets the initial value of the prompt's text input.
+    ///
+    /// If you want to set a default value for the prompt, returned when the user's submission is empty, see [`with_default`].
+    ///
+    /// [`with_default`]: Self::with_default
+    pub fn with_initial_value(mut self, message: &'a str) -> Self {
+        self.initial_value = Some(message);
+        self
     }
 
     /// Sets the default input.
@@ -284,6 +302,13 @@ where
     T: Clone,
 {
     fn from(co: CustomType<'a, T>) -> Self {
+        let input = Input::new_with(co.initial_value.unwrap_or_default());
+        let input = if let Some(placeholder) = co.placeholder {
+            input.with_placeholder(placeholder)
+        } else {
+            input
+        };
+
         Self {
             message: co.message,
             error: None,
@@ -293,10 +318,7 @@ where
             default_value_formatter: co.default_value_formatter,
             validators: co.validators,
             parser: co.parser,
-            input: co
-                .placeholder
-                .map(|p| Input::new().with_placeholder(p))
-                .unwrap_or_else(Input::new),
+            input,
             error_message: co.error_message,
         }
     }
