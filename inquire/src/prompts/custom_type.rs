@@ -37,6 +37,7 @@ use crate::{
 ///     formatter: &|i| format!("${:.2}", i),
 ///     default_value_formatter: &|i| format!("${:.2}", i),
 ///     default: None,
+///     initial_value: None,
 ///     validators: vec![],
 ///     placeholder: Some("123.45"),
 ///     error_message: "Please type a valid number.".into(),
@@ -410,5 +411,19 @@ where
         let formatted = (self.formatter)(final_answer.clone());
 
         finish_prompt_with_answer!(backend, self.message, &formatted, final_answer);
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_initial_value() {
+        let prompt: CustomTypePrompt<_> = CustomType::<u32>::new("How many tests did you write?")
+            .with_initial_value("1")
+            .into();
+
+        assert_eq!(prompt.input.content(), "1");
     }
 }
